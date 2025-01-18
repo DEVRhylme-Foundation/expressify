@@ -1,6 +1,9 @@
 ### Expressify-CLI 🚀<br/>
 
-<img src="./assets/expressify-logo.png" height="200px" style="border-radius:50px"/><br/>
+<img width="814" alt="image" src="https://github.com/user-attachments/assets/03279330-9a0e-4e7d-9631-e4bd57cc6c17" />
+
+
+<!--<img src="./assets/expressify-logo.png" height="200px" style="border-radius:50px"/><br/>-->
 
 **Expressify-CLI** is a command-line tool designed to generate a **production-grade** scaffold for Express applications in a single command. This tool streamlines the setup process for developing Express applications with JavaScript/TypeScript, making it faster and more efficient.
 
