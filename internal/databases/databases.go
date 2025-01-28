@@ -13,16 +13,12 @@ const (
 	MySQL      Database = "MySQL"
 )
 
-var databases = []selector.Item{
-	selector.Item(MongoDB),
-	selector.Item(PostgreSQL),
-	selector.Item(MySQL),
+var databases = []list.Item{
+	list.Item(MongoDB),
+	list.Item(PostgreSQL),
+	list.Item(MySQL),
 }
 
 func NewDatabaseSelector() *selector.Selector {
-	var items []list.Item
-	for _, item := range databases {
-		items = append(items, list.Item(item))
-	}
-	return selector.NewSelector("\n😎 Choose a database", items)
+	return selector.NewSelector("\n😎 Choose a database", databases)
 }
