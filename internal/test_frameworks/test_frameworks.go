@@ -5,22 +5,23 @@ import (
 	"github.com/codersgyan/expressify/internal/selector"
 )
 
-type TestFramwork string
+type TestFramework string
 
 const (
-	SuperTestWithJest TestFramwork = "SuperTest with Jest"
-	MochaWithChaiHTTP TestFramwork = "Mocha with Chai HTTP"
+	SuperTestWithJest TestFramework = "SuperTest with Jest"
+	MochaWithChaiHTTP TestFramework = "Mocha with Chai HTTP"
 )
 
-var testFrameworks = []selector.Item{
-	selector.Item(SuperTestWithJest),
-	selector.Item(MochaWithChaiHTTP),
+var testFrameworks = []TestFramework{
+	SuperTestWithJest,
+	MochaWithChaiHTTP,
 }
 
+// NewTestFrameworkSelector creates a new test framework selector with available options
 func NewTestFrameworkSelector() *selector.Selector {
 	var items []list.Item
-	for _, item := range testFrameworks {
-		items = append(items, list.Item(item))
+	for _, framework := range testFrameworks {
+		items = append(items, list.Item(framework))
 	}
 	return selector.NewSelector("\n😎 Choose a test framework", items)
 }
