@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/codersgyan/expressify/internal/cli_model"
 	"github.com/codersgyan/expressify/internal/structure" // Ensure this package is imported for CopyDir
+	"os"
 )
 
 func main() {
