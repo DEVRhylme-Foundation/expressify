@@ -3,37 +3,49 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/charmbracelet/bubbletea"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/codersgyan/expressify/internal/cli_model"
-	"github.com/codersgyan/expressify/internal/structure" // Ensure this package is imported for CopyDir
+	"github.com/codersgyan/expressify/internal/errors"
+	"github.com/codersgyan/expressify/internal/structure"
 )
 
 func main() {
+	handleCLI()
+}
 
-	// Get current working directory
+func handleCLI() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Printf("Unable to get current working directory: %v\n", err)
-		os.Exit(1)
+		handleError(errors.NewSystemError(
+			"Failed to get working directory",
+			fmt.Sprintf("Error details: %v", err),
+		))
+		return
 	}
 
-	// Define source and destination paths for the directory copy
 	srcPath := cwd + "/.templates/jsbase"
 	dstPath := cwd + "/.expressify/auth-service"
 
-	// Copy the directory
-	cpErr := structure.CopyDir(srcPath, dstPath)
-	if cpErr != nil {
-		fmt.Printf("Error copying directory: %s\n", cpErr)
-		os.Exit(1)
-	} else {
-		fmt.Println("Directory copied successfully.")
+	if err := structure.CopyDir(srcPath, dstPath); err != nil {
+		handleError(err)
+		return
 	}
 
-	// Run the CLI program using bubbletea
 	p := tea.NewProgram(cli_model.InitialModel())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+		handleError(errors.NewRuntimeError(
+			"CLI program error",
+			fmt.Sprintf("Error running CLI: %v", err),
+		))
+		return
 	}
+}
+
+func handleError(err *errors.AppError) {
+	fmt.Printf("\nError Type: %s\n", err.Type)
+	fmt.Printf("Message: %s\n", err.Message)
+	fmt.Printf("Details: %s\n", err.Detail)
+	fmt.Printf("Code: %d\n", err.Code)
+	os.Exit(1)
 }

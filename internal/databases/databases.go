@@ -13,10 +13,15 @@ const (
 	MySQL      Database = "MySQL"
 )
 
+// Implement the list.Item interface for Database type
+func (d Database) FilterValue() string {
+	return string(d)
+}
+
 var databases = []list.Item{
-	list.Item(MongoDB),
-	list.Item(PostgreSQL),
-	list.Item(MySQL),
+	MongoDB,
+	PostgreSQL,
+	MySQL,
 }
 
 func NewDatabaseSelector() *selector.Selector {
