@@ -7,6 +7,19 @@ import (
 	"github.com/codersgyan/expressify/internal/cli_model"
 	"github.com/codersgyan/expressify/internal/structure" // Ensure this package is imported for CopyDir
 )
+// logError logs the error to a file and prints it to the console.
+func logError(err error) {
+	logFile, err := os.OpenFile("error.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Unable to open log file: %v\n", err)
+		return
+	}
+	defer logFile.Close()
+
+	log.SetOutput(logFile)
+	log.Println(err)
+	fmt.Printf("Error: %v\n", err)
+}
 
 func main() {
 

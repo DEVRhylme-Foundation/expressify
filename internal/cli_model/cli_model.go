@@ -2,6 +2,7 @@ package cli_model
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -35,9 +36,6 @@ const (
 	StateConfig
 	StateCodingStyle
 	StateFolderStructure
-	// StateAuth
-	// StateMainWork
-	// StateDone
 )
 
 type CliModel struct {
@@ -68,9 +66,74 @@ func (m CliModel) Init() tea.Cmd {
 	return nil
 }
 
-type (
-	errMsg error
-)
+type errMsg error
+
+func (m *CliModel) handleEnter() tea.Cmd {
+	switch m.CurrentState {
+	case StateWelcome:
+		m.CurrentState = StateProjectName
+		m.ProjectNameInput.Focus()
+	case StateProjectName:
+		m.CurrentState = StateLanguage
+	case StateLanguage:
+		i, ok := m.LanguageList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedLanguage = string(i)
+		}
+		m.CurrentState = StatePackageManager
+	case StatePackageManager:
+		i, ok := m.PackageManagerList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedPackageManager = string(i)
+		}
+		m.CurrentState = StateTestFramework
+	case StateTestFramework:
+		i, ok := m.TestFrameworkList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedTestFramework = string(i)
+		}
+		m.CurrentState = StateLoggerLibrary
+	case StateLoggerLibrary:
+		i, ok := m.LoggerLibraryList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedLoggerLibrary = string(i)
+		}
+		m.CurrentState = StateDatabase
+	case StateDatabase:
+		i, ok := m.DatabaseList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedDatabase = string(i)
+		}
+		m.CurrentState = StateORM
+	case StateORM:
+		i, ok := m.ORMList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedORM = string(i)
+		}
+		m.CurrentState = StateConfig
+	case StateConfig:
+		i, ok := m.ConfigList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedConfig = string(i)
+		}
+		m.CurrentState = StateCodingStyle
+	case StateCodingStyle:
+		i, ok := m.CodingStyleList.SelectedItem().(selector.Item)
+		if ok {
+			m.SelectedCodingStyle = string(i)
+		}
+		m.CurrentState = StateFolderStructure
+	case StateFolderStructure:
+		err := structure.CreateBaseFileStructure(m.ProjectNameInput.Value(), m.SelectedLanguage)
+		if err != nil {
+			fmt.Printf("error creating folder structure: %v", err)
+			m.Error = err
+			return tea.Quit
+		}
+		// todo: transition to next state
+	}
+	return nil
+}
 
 func (m CliModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
@@ -79,105 +142,10 @@ func (m CliModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.LanguageList.SetWidth(msg.Width)
 		m.ProjectNameInput.Width = msg.Width
-		return m, nil
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			// here, only changing the state
-			if m.CurrentState == StateWelcome {
-				m.CurrentState = StateProjectName
-				m.ProjectNameInput.Focus()
-				return m, nil
-			}
-			if m.CurrentState == StateProjectName {
-				m.CurrentState = StateLanguage
-				return m, nil
-			}
-
-			if m.CurrentState == StateLanguage {
-				i, ok := m.LanguageList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedLanguage = string(i)
-				}
-				m.CurrentState = StatePackageManager
-				return m, nil
-			}
-
-			if m.CurrentState == StatePackageManager {
-				i, ok := m.PackageManagerList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedPackageManager = string(i)
-				}
-				m.CurrentState = StateTestFramework
-				return m, nil
-			}
-
-			if m.CurrentState == StateTestFramework {
-				i, ok := m.TestFrameworkList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedTestFramework = string(i)
-				}
-				m.CurrentState = StateLoggerLibrary
-				return m, nil
-			}
-
-			if m.CurrentState == StateLoggerLibrary {
-				i, ok := m.LoggerLibraryList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedLoggerLibrary = string(i)
-				}
-				m.CurrentState = StateDatabase
-				return m, nil
-			}
-
-			if m.CurrentState == StateDatabase {
-				i, ok := m.DatabaseList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedDatabase = string(i)
-				}
-				m.CurrentState = StateORM
-				return m, nil
-			}
-
-			if m.CurrentState == StateORM {
-				i, ok := m.ORMList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedORM = string(i)
-				}
-				m.CurrentState = StateConfig
-				return m, nil
-			}
-
-			if m.CurrentState == StateConfig {
-				i, ok := m.ConfigList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedConfig = string(i)
-				}
-				m.CurrentState = StateCodingStyle
-				return m, nil
-			}
-
-			if m.CurrentState == StateCodingStyle {
-				i, ok := m.CodingStyleList.SelectedItem().(selector.Item)
-				if ok {
-					m.SelectedCodingStyle = string(i)
-				}
-				m.CurrentState = StateFolderStructure
-				return m, nil
-			}
-
-			if m.CurrentState == StateFolderStructure {
-				// Create folder structure
-				err := structure.CreateBaseFileStructure(m.ProjectNameInput.Value(), m.SelectedLanguage)
-				if err != nil {
-					fmt.Printf("error creating folder structure: %v", err)
-					return m, tea.Quit
-				}
-				// todo: transition to next state
-				// m.CurrentState = StateFolderStructure
-				return m, nil
-			}
-
+			cmd = m.handleEnter()
 		case tea.KeyEsc, tea.KeyCtrlC:
 			return m, tea.Quit
 		}
@@ -186,52 +154,28 @@ func (m CliModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	if m.CurrentState == StateProjectName {
+	switch m.CurrentState {
+	case StateProjectName:
 		m.ProjectNameInput, cmd = m.ProjectNameInput.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateLanguage {
+	case StateLanguage:
 		m.LanguageList, cmd = m.LanguageList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StatePackageManager {
+	case StatePackageManager:
 		m.PackageManagerList, cmd = m.PackageManagerList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateTestFramework {
+	case StateTestFramework:
 		m.TestFrameworkList, cmd = m.TestFrameworkList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateLoggerLibrary {
+	case StateLoggerLibrary:
 		m.LoggerLibraryList, cmd = m.LoggerLibraryList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateDatabase {
+	case StateDatabase:
 		m.DatabaseList, cmd = m.DatabaseList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateORM {
+	case StateORM:
 		m.ORMList, cmd = m.ORMList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateConfig {
+	case StateConfig:
 		m.ConfigList, cmd = m.ConfigList.Update(msg)
-		return m, cmd
-	}
-
-	if m.CurrentState == StateCodingStyle {
+	case StateCodingStyle:
 		m.CodingStyleList, cmd = m.CodingStyleList.Update(msg)
-		return m, cmd
 	}
 
-	return m, nil
+	return m, cmd
 }
 
 func (m CliModel) View() string {
@@ -275,7 +219,6 @@ func (m CliModel) View() string {
 			return quitTextStyle.Render(fmt.Sprintf(str))
 		}
 		return m.TestFrameworkList.View()
-
 	case StateLoggerLibrary:
 		if m.SelectedLoggerLibrary != "" {
 			var str string
@@ -289,90 +232,9 @@ func (m CliModel) View() string {
 			return quitTextStyle.Render(fmt.Sprintf(str))
 		}
 		return m.LoggerLibraryList.View()
-
 	case StateDatabase:
 		if m.SelectedDatabase != "" {
 			var str string
 			if m.SelectedDatabase == string(databases.MongoDB) {
 				str = "🎉 Awesome choice! MongoDB is powerful NoSQL database 🚀"
-			} else if m.SelectedDatabase == string(databases.PostgreSQL) {
-				str = "👍 Great pick! PostgreSQL is powerful relational database"
-			} else if m.SelectedDatabase == string(databases.MySQL) {
-				str = "👍 Great pick! MySQL is powerful database"
-			}
-			return quitTextStyle.Render(fmt.Sprintf(str))
-		}
-		return m.DatabaseList.View()
-
-	case StateORM:
-		if m.SelectedORM != "" {
-			var str string
-			if m.SelectedORM == string(orms.Mongoose) {
-				str = "🎉 Awesome choice! 🚀"
-			} else if m.SelectedORM == string(orms.Sequelize) {
-				str = "👍 Great pick!"
-			} else if m.SelectedORM == string(orms.TypeORM) {
-				str = "👍 Great pick!"
-			} else if m.SelectedORM == string(orms.Prisma) {
-				str = "👍 Great pick!"
-			} else if m.SelectedORM == string(orms.None) {
-				str = "🔥 Loving hardcore, yeah 💪"
-			}
-			return quitTextStyle.Render(fmt.Sprintf(str))
-		}
-		return m.ORMList.View()
-
-	case StateConfig:
-		if m.SelectedConfig != "" {
-			var str string
-			if m.SelectedConfig == string(configs.ENV) {
-				str = "🎉 Awesome choice! 🚀"
-			} else if m.SelectedConfig == string(configs.JSON) {
-				str = "👍 Great pick!"
-			} else if m.SelectedConfig == string(configs.YAML) {
-				str = "👍 Great pick!"
-			}
-			return quitTextStyle.Render(fmt.Sprintf(str))
-		}
-		return m.ConfigList.View()
-
-	case StateCodingStyle:
-		if m.SelectedCodingStyle != "" {
-			var str string
-			if m.SelectedCodingStyle == string(coding_styles.Functional) {
-				str = "🎉 Awesome choice! 🚀"
-			} else if m.SelectedCodingStyle == string(coding_styles.ObjectOriented) {
-				str = "👍 Great pick!"
-			}
-			return quitTextStyle.Render(fmt.Sprintf(str))
-		}
-		return m.CodingStyleList.View()
-	}
-	return s
-}
-
-func InitialModel() CliModel {
-	projectNameInput := textinput.New()
-	projectNameInput.Placeholder = "my-expressify-app"
-	return CliModel{
-		CurrentState:     StateWelcome,
-		ProjectNameInput: projectNameInput,
-		WelcomeMessage: `
-🌟🚀 Welcome to Expressify! 🚀🌟
-We're thrilled to have you on board for a seamless and efficient Express.js application setup.
-Get ready to supercharge your development process with our intuitive CLI tool.
-
-Let's create something amazing together! 🎉👨‍💻👩‍💻
-
-Press Enter to begin... (or ESC to quit)
-`,
-		LanguageList:       languages.NewLanguageSelector().List,
-		PackageManagerList: package_managers.NewPManagerSelector().List,
-		TestFrameworkList:  test_frameworks.NewTestFrameworkSelector().List,
-		LoggerLibraryList:  loggers.NewLoggerSelector().List,
-		DatabaseList:       databases.NewDatabaseSelector().List,
-		ORMList:            orms.NewORMSelector().List,
-		ConfigList:         configs.NewConfigSelector().List,
-		CodingStyleList:    coding_styles.NewCodingStyleSelector().List,
-	}
-}
+		
