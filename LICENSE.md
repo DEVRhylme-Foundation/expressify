@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2023 Coder's Gyan
+Copyright (c) 2024 DEVRhylme Foundation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
